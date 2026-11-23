@@ -12,14 +12,20 @@ three-round reasoning.
 import os
 
 LETTER = b"A"  # A = coffee
-OUT_PATH = "/output/entry.txt"
+# The harness mounts the output directory at /output; allow an override so
+# the entry can be exercised locally without that mount (default keeps the
+# competition path).
+OUT_PATH = os.environ.get("ENTRY_OUTPUT", "/output/entry.txt")
 
 
 def main() -> None:
-    # Pre-write gate: exactly one byte, not whitespace, no newline.
+    # Pre-write gate: exactly one byte, a single ASCII uppercase letter,
+    # not whitespace, no newline.
     assert len(LETTER) == 1, "entry must be exactly one byte"
+    assert b"A" <= LETTER <= b"Z", "entry must be one uppercase letter A-Z"
     assert LETTER not in (b" ", b"\t", b"\n", b"\r"), "entry must not be whitespace"
-    os.makedirs("/output", exist_ok=True)
+    out_dir = os.path.dirname(OUT_PATH) or "."
+    os.makedirs(out_dir, exist_ok=True)
     with open(OUT_PATH, "wb") as f:
         f.write(LETTER)
     # Post-write gate: re-read and verify byte-identical, exactly 1 byte.
